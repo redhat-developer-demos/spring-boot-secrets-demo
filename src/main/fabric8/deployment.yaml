@@ -1,0 +1,28 @@
+spec:
+  template:
+    spec:
+      containers:
+        - env:
+          - name: SECRETS_DEMO_USER
+            valueFrom:
+              secretKeyRef:
+                name: spring-security
+                key: spring.user.name
+          - name: SECRETS_DEMO_USER_PASSWD
+            valueFrom:
+              secretKeyRef:
+                name: spring-security
+                key: spring.user.password
+          volumeMounts:
+          - name: github-user 
+            mountPath: "/deployments/github" 
+            readOnly: true
+      volumes:
+      - name: github-user
+        secret:
+          secretName: spring-github-demo 
+          items:
+          - key: github.user 
+            path: user 
+          - key: github.token 
+            path: token 
