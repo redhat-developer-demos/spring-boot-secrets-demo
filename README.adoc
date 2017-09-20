@@ -1,4 +1,4 @@
-= Configuring Spring Boot Application on Kubernetes - Secrets
+= Configuring Spring Boot Application on Kubernetes with Secrets
 
 A demo Spring Boot application that demonstrates on using
 Kubernetes https://kubernetes.io/docs/concepts/configuration/secret/[Secrets] to configure Spring Boot application.
@@ -49,7 +49,7 @@ when the spring boot application boots up.
 To demonstrate how Kubernetes secrets can be used to override the default user/password, update the `application.properties`
 to be like:
 
-[code]
+[source]
 ----
 security.user.name=${SECRETS_DEMO_USER:demo} <1>
 security.user.password=${SECRETS_DEMO_USER_PASSWD:demo} <2>
@@ -58,14 +58,14 @@ security.user.password=${SECRETS_DEMO_USER_PASSWD:demo} <2>
 <1> The spring security user
 <2> The spring security password
 
-== Secrets as Environment variables
+=== Secrets as Environment variables
 
 Create kubernetes secrets called **spring-security** (this just a name I am using but it could be anything of your choice) and add
 two properties like spring.user.name and spring.user.password to it.
 
 [[create-secret]]
-=== Create secret
-[code,sh]
+==== Create secret
+[source,sh]
 ----
 kubectl create secret generic spring-security \
  --from-literal=spring.user.name=demo \
@@ -103,7 +103,7 @@ and service as fragments in `$PROJECT_HOME/src/main/fabric8`.  The https://maven
 care of building the complete Kubernetes manifests by merging the contents of the fragment(s) from `$PROJECT_HOME/src/main/fabric8`
 during deploy.
 
-===== Deployment
+==== Deployment
 
 Create a file called *deployment.yaml* in `$PROJECT_HOME/src/main/fabric8` with the following contents,
 
@@ -133,7 +133,7 @@ spec:
 <4> The property key inside the Secret, whose value needs to be assigned to environment variable
 **SECRETS_DEMO_USER** and **SECRETS_DEMO_USER_PASSWD** respectively
 
-===== Service
+==== Service
 
 To enable easy access of the application, we make the type of Kubernetes service as https://kubernetes.io/docs/concepts/services-networking/service/#type-nodeport[NodePort],
 create a file called **svc.yaml** in `$PROJECT_HOME/src/main/fabric8` with the following contents,
@@ -171,7 +171,7 @@ The above command should display a message like **Hello jerry! Welcome to Config
 NOTE: `minikube service spring-boot-secrets-demo --url` is used to get the service url and port via which we can access
 the application
 
-== Secrets mounted as Files
+=== Secrets mounted as Files
 
 The secrets could also be mounted as files inside the containers. To demostrate lets build a simple REST controller
 called GitHubController, that will query the GitHub API for your organizations list. Querying for  organizations list is
@@ -181,7 +181,7 @@ Store the your github user id in a file called `github.user` and the https://hel
 in a file called `github.token`.
 
 [[create-secret-from-files]]
-=== Create secret from files
+==== Create secret from files
 
 The secrets can also be created from file, we will use `github.user` and `github.token` to create a new secret called
 `spring-github-demo`
@@ -196,7 +196,7 @@ kubectl get secret spring-github-demo -oyaml <3>
 ----
 <1> Adds file `github.user` to secret
 <2> Adds file `github.token` to secret
-<2> Display the created secret
+<3> Display the created secret
 
 Example output from `kubectl get secret spring-github-demo -oyaml`
 
@@ -275,8 +275,8 @@ spec:
 <3> The secret name from which to load the secrets
 <4> The key github.user from secret spring-github-demo
 <5> The path under /deployments/github, in this case /deployments/github/user
-<5> The key github.token from secret spring-github-demo
-<6> The path under /deployments/github, in this case /deployments/github/token
+<6> The key github.token from secret spring-github-demo
+<7> The path under /deployments/github, in this case /deployments/github/token
 
 ==== Update pom.xml
 
@@ -362,7 +362,7 @@ import java.nio.file.Paths;
 public class GitHubController {
 
     @Value("${demo.secretsPath}")
-    private String secretsPath;
+    private String secretsPath; //<1>
 
     private RestTemplate restTemplate;
 
@@ -378,8 +378,8 @@ public class GitHubController {
     public ResponseEntity<String> listMyOrganizations() {
         try {
 
-            final URI githubUserSecretsURI = ResourceUtils.getURL(secretsPath + "/github/user").toURI();
-            final URI githubUserTokenSecretsURI = ResourceUtils.getURL(secretsPath + "/github/token").toURI();
+            final URI githubUserSecretsURI = ResourceUtils.getURL(secretsPath + "/github/user").toURI(); // <2>
+            final URI githubUserTokenSecretsURI = ResourceUtils.getURL(secretsPath + "/github/token").toURI(); //<3>
 
             final byte[] encodedGithubUser = Files.readAllBytes(Paths.get(githubUserSecretsURI));
             final byte[] encodedGithubToken = Files.readAllBytes(Paths.get(githubUserTokenSecretsURI));
