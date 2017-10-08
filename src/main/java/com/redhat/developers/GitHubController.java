@@ -2,7 +2,6 @@ package com.redhat.developers;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -34,9 +33,8 @@ public class GitHubController {
     @Value("${demo.secretsPath}")
     private String secretsPath; 
 
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
     public GitHubController(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
