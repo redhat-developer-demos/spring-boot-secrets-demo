@@ -278,18 +278,6 @@ spec:
 <6> The key github.token from secret spring-github-demo
 <7> The path under /deployments/github, in this case /deployments/github/token
 
-==== Update pom.xml
-
-Since its need to encode/decode Base64 strings, the followig dependency need to be added to pom.xml,
-
-[source,xml]
-----
-<dependency>
-   <groupId>commons-codec</groupId>
-   <artifactId>commons-codec</artifactId>
-</dependency>
-----
-
 ==== Update KubernetesSpringBootDemosSecretsDemoApplication
 
 [source,java]
@@ -331,8 +319,6 @@ Create a Controller called GitHubController that will  query the GitHub API usin
 package com.redhat.developers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -349,6 +335,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 
 /**
  * A simple demo rest controller that calls GitHub API to perform some simple operations which will require authorizations
@@ -364,9 +351,8 @@ public class GitHubController {
     @Value("${demo.secretsPath}")
     private String secretsPath; //<1>
 
-    private RestTemplate restTemplate;
+    private final RestTemplate restTemplate;
 
-    @Autowired
     public GitHubController(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
@@ -392,7 +378,7 @@ public class GitHubController {
 
             log.info("Listing Organizations of user :{}", githubUser);
 
-            String basicAutheader = new String(Base64.encodeBase64URLSafe(authHeader.getBytes()));
+            String basicAutheader = Base64.getEncoder().encodeToString(authHeader.getBytes());
 
             log.info("Auth Header : {}", basicAutheader);
 
@@ -417,7 +403,7 @@ public class GitHubController {
      * A method to build {@link RequestEntity} by adding needed basic authentication headers
      *
      * @param path           - the github api path to call with out leading &quot;/&quot;
-     * @param basicAutheader - the Basic Authorization {@link Base64#encodeBase64URLSafe(byte[])} string representation header value
+     * @param basicAutheader - the Basic Authorization Base64 string representation header value
      * @return {@link RequestEntity}
      */
     private RequestEntity<Void> buildHttpEntity(String path, String basicAutheader) {
@@ -444,7 +430,6 @@ public class GitHubController {
             .replace("\n", "");
     }
 }
-
 ----
 
 <1> The secrets path where to look for the file

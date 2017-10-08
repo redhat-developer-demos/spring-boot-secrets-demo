@@ -1,7 +1,6 @@
 package com.redhat.developers;
 
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,6 +17,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Base64;
 
 /**
  * A simple demo rest controller that calls GitHub API to perform some simple operations which will require authorizations
@@ -60,7 +60,7 @@ public class GitHubController {
 
             log.info("Listing Organizations of user :{}", githubUser);
 
-            String basicAutheader = new String(Base64.encodeBase64URLSafe(authHeader.getBytes()));
+            String basicAutheader = Base64.getEncoder().encodeToString(authHeader.getBytes());
 
             log.info("Auth Header : {}", basicAutheader);
 
@@ -85,7 +85,7 @@ public class GitHubController {
      * A method to build {@link RequestEntity} by adding needed basic authentication headers
      *
      * @param path           - the github api path to call with out leading &quot;/&quot;
-     * @param basicAutheader - the Basic Authorization {@link Base64#encodeBase64URLSafe(byte[])} string representation header value
+     * @param basicAutheader - the Basic Authorization Base64 string representation header value
      * @return {@link RequestEntity}
      */
     private RequestEntity<Void> buildHttpEntity(String path, String basicAutheader) {
